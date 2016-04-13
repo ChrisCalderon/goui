@@ -31,13 +31,14 @@ function draw19x19(){
     ctx.lineTo(19*lineStep, i*lineStep)
   }
   // draw the line labels
-  for(var i = 1; i < 20; i++){
+  for(var i = 1, j = 1; i < 20; i++, j++){
     // numbers up the sides
     ctx.fillText(i.toString(), lineStep/2, (20 - i + 0.2)*lineStep)
     ctx.fillText(i.toString(), 19.5*lineStep, (20 - i + 0.2)*lineStep)
     // letters across top and bottom
-    ctx.fillText(String.fromCharCode(64 + i), i*lineStep, lineStep/2)
-    ctx.fillText(String.fromCharCode(64 + i), i*lineStep, 19.5*lineStep)
+    if((64 + j) == 73) j++
+    ctx.fillText(String.fromCharCode(64 + j), i*lineStep, lineStep/2)
+    ctx.fillText(String.fromCharCode(64 + j), i*lineStep, 19.5*lineStep)
   }
   // draw handicap dots
   for(var x of [4, 10, 16]){
@@ -102,4 +103,10 @@ function toggleColor(){
     color = "white"
   else
     color = "black"
+}
+
+undo.onclick = function(e){
+  ctx.restore()
+  toggleColor()
+  moves.pop()
 }
