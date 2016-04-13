@@ -1,0 +1,82 @@
+#!/usr/bin/python
+import png
+
+def groupby(n, seq):
+    result = []
+    for i in range(0, len(seq), n):
+        result.append(seq[i:i+n])
+    return result
+
+def flatten(seq):
+    if seq == []:
+        return []
+    if isinstance(seq[0], list):
+        return flatten(seq[0]) + flatten(seq[1:])
+    else:
+        return [seq[0]] + flatten(seq[1:])
+
+def removeAlpha(fname, overwrite):
+    r = png.Reader(fname)
+    pic_info = r.read()
+    groupByFour = lambda row: map(list, groupby(4, row))
+    dropAlpha = lambda pixel: pixel[:-1]
+    processRow = lambda row: flatten(map(dropAlpha, row))
+    try:
+        processedPixels = map(processRow, map(groupByFour, pic_info[2]))
+        w = png.Writer(size=pic_info[:2])
+        if overwrite:
+            new_pic = open(fname, 'wb')
+        else:
+            new_pic = open(fname.strip('.png') + '-noAlpha.png', 'wb')
+        w.write(new_pic, processedPixels)
+    except Exception as exc:
+        print str(exc)
+        return 1
+    else:
+        return 0
+    
+
+def main(argv):
+    '''\
+Usage:
+    removeAlpha [-o|--overwrite] [-h|--help] pic1 [pic2 ...]
+
+Options:
+    -o, --overwrite     Removes the alpha channel from each png.
+    -h, --help          Shows this help.
+
+Notes:
+    If -o is not supplied, then each png has a copy made without
+  it's alpha channel. The copy's name is the name of the original
+  with "-noAlpha" appended.
+'''
+    import getopt
+
+    try:
+        options, extra = getopt.getopt(argv[1:], 'oh', ('overwrite', 'help'))
+    except getopt.error as exc:
+        print str(exc)
+        print main.__doc__.split()[1].strip()
+        return 2
+
+    overwrite = False
+    for option, val in options:
+        if option in ('-h', '--help'):
+            print main.__doc__
+            return 1
+        elif option in ('-o', '--overwrite'):
+            overwrite = True
+
+    if len(extra) == 0:
+        print 'You have to specify a picture!'
+        print main.__doc__.split()[1].strip()
+        return 2
+    
+    for picname in extra:
+        if removeAlpha(picname, overwrite) != 0:
+            return 1
+
+if __name__ == '__main__':
+    import sys
+    sys.exit(main(sys.argv))
+    
